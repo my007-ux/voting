@@ -25,7 +25,6 @@ packaging==23.2
 pandas==2.1.4
 Pillow==10.1.0
 platformdirs==3.11.0
-psycopg2==2.9.9
 PyAutoGUI==0.9.54
 PyGetWindow==0.0.9
 PyJWT==2.8.0
