@@ -1,7 +1,7 @@
 from rest_framework.authtoken.models import Token
 from rest_framework.serializers import (ModelSerializer, DateField, ValidationError,
                                         SerializerMethodField, ImageField, CharField, EmailField, IntegerField,Serializer,PrimaryKeyRelatedField, BooleanField )
-from .models import User
+from .models import User, VoterTable
 from utils.enum import Types
 from django.contrib.auth.models import Group
 
@@ -89,4 +89,9 @@ class FilterUserSerializer(ModelSerializer):
                   'modified_by_id',
                   'modified_datetime', 'date_joined']
 
+
+class VoterUserSerializer(ModelSerializer):
+    class Meta:
+        model = VoterTable
+        fields = '__all__'
 

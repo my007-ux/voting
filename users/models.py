@@ -106,3 +106,21 @@ class UserPermissions(models.Model):
     def __str__(self):
         return self.user.first_name + '-' + self.user.last_name
 
+
+
+class VoterTable(models.Model):
+    name = models.CharField(max_length=150, null=True, blank=True)
+    father_name = models.CharField(max_length=60, null=True, blank=True)
+    cnic = models.CharField(max_length=120, unique=True)
+    division = models.CharField(max_length=30, null=True, blank=True)
+    province = models.CharField(max_length=30, null=True, blank=True)
+    tehsil = models.CharField(max_length=30, null=True, blank=True)
+    district = models.CharField(max_length=30, null=True, blank=True)
+    uc_id = models.IntegerField(null=True, blank=True, default=0)
+    address = models.CharField(max_length=250, null=True, blank=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_fk",
+                                   on_delete=models.CASCADE)
+    modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_fk",
+                                    null=True, on_delete=models.CASCADE)
+    modified_datetime = models.DateTimeField(blank=True, null=True)
