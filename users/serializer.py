@@ -1,7 +1,7 @@
 from rest_framework.authtoken.models import Token
 from rest_framework.serializers import (ModelSerializer, DateField, ValidationError,
                                         SerializerMethodField, ImageField, CharField, EmailField, IntegerField,Serializer,PrimaryKeyRelatedField, BooleanField )
-from .models import User, VoterTable
+from .models import User, VoterTable,Province, District, Tehsil, Area, Council, PollingStation, Candidate, Vote
 from utils.enum import Types
 from django.contrib.auth.models import Group
 
@@ -89,9 +89,54 @@ class FilterUserSerializer(ModelSerializer):
                   'modified_by_id',
                   'modified_datetime', 'date_joined']
 
+class ProvinceSerializer(ModelSerializer):
+    class Meta:
+        model = Province
+        fields = '__all__'
+
+class DistrictSerializer(ModelSerializer):
+    class Meta:
+        model = District
+        fields = '__all__'
+
+class TehsilSerializer(ModelSerializer):
+    class Meta:
+        model = Tehsil
+        fields = '__all__'
+
+class AreaSerializer(ModelSerializer):
+    class Meta:
+        model = Area
+        fields = '__all__'
+
+class CouncilSerializer(ModelSerializer):
+    class Meta:
+        model = Council
+        fields = '__all__'
+
+class PollingStationSerializer(ModelSerializer):
+    class Meta:
+        model = PollingStation
+        fields = '__all__'
+
+class PollingStationGetterSerializer(ModelSerializer):
+    class Meta:
+        model = PollingStation
+        fields = ['id', 'name']
+
+class CandidateSerializer(ModelSerializer):
+    class Meta:
+        model = Candidate
+        fields = '__all__'
 
 class VoterUserSerializer(ModelSerializer):
+    polling_station = PollingStationGetterSerializer()
     class Meta:
         model = VoterTable
+        fields = '__all__'
+
+class VoteSerializer(ModelSerializer):
+    class Meta:
+        model = Vote
         fields = '__all__'
 
