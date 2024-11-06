@@ -14,6 +14,7 @@ from .models import *
 from .serializer import *
 import csv
 from .blockchain import Blockchain  # Assume this is your blockchain interface
+from django.db.models import Count
 
 
 User = get_user_model()
@@ -360,48 +361,52 @@ class ManageTehsil(APIView):
             print(traceback.format_exc())
             return internal_server_error(message='Failed to delete tehsil')
 
-class ManageArea(APIView):
+class ManageDivision(APIView):
     authentication_classes = []
     permission_classes = []
     def post(self, request):
         try:
             payload_dict = request.data
-            area_serializer = AreaSerializer(data=payload_dict)
-            if area_serializer.is_valid():
-                area_serializer.save()
-                message = f"{area_serializer.validated_data.get('name')} created successfully"
+            division_serializer = DivisionSerializer(data=payload_dict)
+            if division_serializer.is_valid():
+                division_serializer.save()
+                message = f"{division_serializer.validated_data.get('name')} created successfully"
                 return created(message=message)
             return bad_request(message="Invalid data")
 
         except Exception as err:
             print(traceback.format_exc())
-            return internal_server_error(message='Failed to create area')
+            return internal_server_error(message='Failed to create division')
 
-    def get(self, request):
+    def get(self, request, id=None):
         try:
-            all_areas = Area.objects.order_by('-modified_datetime')
-            resultdata = []
-            if all_areas.exists():
-                serializer = AreaSerializer(all_tehsils, many=True)
-                return ok(data=serializer.data)
+            
+            if id is None:
+                return bad_request(message="Tehsil is missing")
             else:
-                return ok(data=resultdata)
+                all_diviosns = Division.objects.order_by('-name')
+                resultdata = []
+                if all_diviosns.exists():
+                    serializer = DivisionSerializer(all_diviosns, many=True)
+                    return ok(data=serializer.data)
+                else:
+                    return ok(data=resultdata)
 
         except Exception as err:
             print(traceback.format_exc())
-            return internal_server_error(message='Failed to get area list')
+            return internal_server_error(message='Failed to get division list')
 
     def delete(self, request, id=None):
         try:
-            area = Area.objects.filter(id=id).first()
-            if area:
-                area.delete()
+            division = Division.objects.filter(id=id).first()
+            if division:
+                division.delete()
                 return ok(message='Successfully deleted')
-            return bad_request(message=f"Area not found with id: {id}")
+            return bad_request(message=f"Division not found with id: {id}")
 
         except Exception as err:
             print(traceback.format_exc())
-            return internal_server_error(message='Failed to delete Area')
+            return internal_server_error(message='Failed to delete Division')
 
 
 
@@ -497,6 +502,54 @@ class ManagePollingStation(APIView):
         except Exception as err:
             print(traceback.format_exc())
             return internal_server_error(message='Failed to delete polling station')
+
+
+class ManagePollingBooth(APIView):
+    authentication_classes = []
+    permission_classes = []
+    def post(self, request):
+        try:
+            payload_dict = request.data
+            polling_booth_serializer = PollingBoothSerializer(data=payload_dict)
+            if polling_booth_serializer.is_valid():
+                polling_booth_serializer.save()
+                message = f"{polling_booth_serializer.validated_data.get('name')} created successfully"
+                return created(message=message)
+            return bad_request(message="Invalid data")
+
+        except Exception as err:
+            print(traceback.format_exc())
+            return internal_server_error(message='Failed to create polling booth')
+
+    def get(self, request, id=None):
+        try:
+            if id is None:
+                return bad_request(message="Tehsil is missing")
+            else:
+                all_polling_booths = PollingBooth.objects.order_by('name')
+                resultdata = []
+                if all_polling_booths.exists():
+                    serializer = PollingBoothSerializer(all_polling_booths, many=True)
+                    return ok(data=serializer.data)
+                else:
+                    return ok(data=resultdata)
+
+        except Exception as err:
+            print(traceback.format_exc())
+            return internal_server_error(message='Failed to get polling booth list')
+
+    def delete(self, request, id=None):
+        try:
+            polling_booth = PollingBooth.objects.filter(id=id).first()
+            if polling_booth:
+                polling_booth.delete()
+                return ok(message='Successfully deleted')
+            return bad_request(message=f"Polling booth not found with id: {id}")
+
+        except Exception as err:
+            print(traceback.format_exc())
+            return internal_server_error(message='Failed to delete polling booth')
+
 
 
 class ManageCandidate(APIView):
@@ -600,6 +653,80 @@ class VoterViewSet(viewsets.ViewSet):
             'percentage': percentage,
         }
         return ok(data=data)
+    def get_polling_station_vote_stats(self, request, pk=None):
+        # Get total votes registered in the polling station
+        total_votes_registered = VoterTable.objects.filter(polling_station_id=pk).count()
+
+        # Get total votes cast in the polling station
+        total_votes_cast = Vote.objects.filter(voter__polling_station_id=pk).count()
+
+        # Get male votes
+        male_votes_count = Vote.objects.filter(
+            voter__polling_station_id=pk,
+            gender='Male'  # Assuming gender is stored as 'Male' or 'Female'
+        ).count()
+
+        # Get female votes
+        female_votes_count = Vote.objects.filter(
+            voter__polling_station_id=pk,
+            gender='Female'  # Assuming gender is stored as 'Male' or 'Female'
+        ).count()
+
+        return ok(data={
+            'total_votes_registered': total_votes_registered,
+            'total_votes_cast': total_votes_cast,
+            'male_votes': male_votes_count,
+            'female_votes': female_votes_count,
+        }) 
+    def get_male_votes_in_booths(self, request, pk=None):
+        # Get booths in the polling station
+        booths = PollingBooth.objects.filter(polling_station_id=pk, gender='Male')
+        
+        # Initialize list to store booth votes statistics
+        booth_votes_stats = []
+        total_votes_sum = 0  # Initialize a variable to sum total votes
+
+        for booth in booths:
+            # Get total votes in the booth (both male and female)
+            total_votes_count = Vote.objects.filter(
+                voter__polling_booth_id=booth.id
+            ).count()
+            total_votes_sum += total_votes_count
+            booth_votes_stats.append({
+                'booth_id': booth.id,
+                'name': booth.name,
+                'total_votes': total_votes_count,
+            })
+
+        return ok(data={
+            'booth_votes': booth_votes_stats,
+            'total_votes_sum': total_votes_sum,  # Total sum of votes across all booths
+            })
+    def get_female_votes_in_booths(self, request, pk=None):
+        # Get booths in the polling station
+        booths = PollingBooth.objects.filter(polling_station_id=pk, gender='Female')
+        
+        # Initialize list to store booth votes statistics
+        booth_votes_stats = []
+        total_votes_sum = 0  # Initialize a variable to sum total votes
+
+        for booth in booths:
+            # Get total votes in the booth (both male and female)
+            total_votes_count = Vote.objects.filter(
+                voter__polling_booth_id=booth.id
+            ).count()
+            total_votes_sum += total_votes_count
+            booth_votes_stats.append({
+                'booth_id': booth.id,
+                'name': booth.name,
+                'total_votes': total_votes_count,
+            })
+
+        return ok(data={
+            'booth_votes': booth_votes_stats,
+            'total_votes_sum': total_votes_sum,  # Total sum of votes across all booths
+            })
+
 
 class CastVote(APIView):
     authentication_classes = []
@@ -662,3 +789,62 @@ class CastVote(APIView):
             return not_found(message= "Candidate not found.")
         except Exception as e:
             return internal_server_error(message=str(e))
+
+class CouncilStatisticsView(APIView):
+    def get(self, request, council_id):
+        try:
+            council = Council.objects.get(id=council_id)
+
+            # Total votes cast against this council
+            total_casted_votes = Vote.objects.filter(candidate__council=council).count()
+
+            # Total unique voters (distinct voters who have cast a vote in this council)
+            total_voters = Vote.objects.filter(candidate__council=council).values('voter').distinct().count()
+
+            # Total polling stations in this council
+            total_polling_stations = PollingStation.objects.filter(council=council).count()
+
+            # Total candidates in this council
+            total_candidates = Candidate.objects.filter(council=council).count()
+
+            # Prepare the response
+            data = {
+                "council_name": council.name,
+                "total_casted_votes": total_casted_votes,
+                "total_voters": total_voters,
+                "total_polling_stations": total_polling_stations,
+                "total_candidates": total_candidates
+            }
+            return ok(data=data)
+        
+        except Council.DoesNotExist:
+            return internal_server_error(message= "Council not found")
+
+class PollingStationCandidatesView(APIView):
+    def get(self, request, id:None):
+        try:
+            # Get the polling station
+            polling_station = PollingStation.objects.get(id=id)
+
+            # Annotate each candidate with the count of votes they received at this polling station,
+            # and order by the vote count in descending order
+            candidates = Candidate.objects.filter(polling_station=polling_station)\
+                .annotate(vote_count=Count('vote'))\
+                .order_by('-vote_count')
+
+            # Prepare response data
+            candidates_data = [
+                {
+                    "candidate_name": candidate.name,
+                    "vote_count": candidate.vote_count
+                } for candidate in candidates
+            ]
+
+            data = {
+                "polling_station": polling_station.name,
+                "candidates": candidates_data
+            }
+            return ok(data=data)
+
+        except PollingStation.DoesNotExist:
+            return internal_server_error(message= "Polling station not found")

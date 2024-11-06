@@ -1,7 +1,7 @@
 from rest_framework.authtoken.models import Token
 from rest_framework.serializers import (ModelSerializer, DateField, ValidationError,
                                         SerializerMethodField, ImageField, CharField, EmailField, IntegerField,Serializer,PrimaryKeyRelatedField, BooleanField )
-from .models import User, VoterTable,Province, District, Tehsil, Area, Council, PollingStation, Candidate, Vote
+from .models import User, VoterTable,Province, District, Tehsil, Division, Council, PollingBooth,PollingStation, Candidate, Vote
 from utils.enum import Types
 from django.contrib.auth.models import Group
 
@@ -104,9 +104,9 @@ class TehsilSerializer(ModelSerializer):
         model = Tehsil
         fields = '__all__'
 
-class AreaSerializer(ModelSerializer):
+class DivisionSerializer(ModelSerializer):
     class Meta:
-        model = Area
+        model = Division
         fields = '__all__'
 
 class CouncilSerializer(ModelSerializer):
@@ -118,6 +118,12 @@ class PollingStationSerializer(ModelSerializer):
     class Meta:
         model = PollingStation
         fields = '__all__'
+
+class PollingBoothSerializer(ModelSerializer):
+    class Meta:
+        model = PollingBooth
+        fields = '__all__'
+
 
 class PollingStationGetterSerializer(ModelSerializer):
     class Meta:

@@ -115,9 +115,19 @@ class Province(models.Model):
                                     null=True, on_delete=models.CASCADE)
     modified_datetime = models.DateTimeField(auto_now_add=True)
 
+
+class Division(models.Model):
+    name = models.CharField(max_length=100)
+    province = models.ForeignKey(Province, on_delete=models.CASCADE)
+    created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_division",
+                                   on_delete=models.CASCADE)
+    modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_division",
+                                    null=True, on_delete=models.CASCADE)
+    modified_datetime = models.DateTimeField(auto_now_add=True)
 class District(models.Model):
     name = models.CharField(max_length=100)
     province = models.ForeignKey(Province, on_delete=models.CASCADE)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_district",
                                    on_delete=models.CASCADE)
     modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_district",
@@ -128,20 +138,10 @@ class Tehsil(models.Model):
     name = models.CharField(max_length=100)
     province = models.ForeignKey(Province, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_tehsil",
                                    on_delete=models.CASCADE)
     modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_tehsil",
-                                    null=True, on_delete=models.CASCADE)
-    modified_datetime = models.DateTimeField(auto_now_add=True)
-
-class Area(models.Model):
-    name = models.CharField(max_length=100)
-    province = models.ForeignKey(Province, on_delete=models.CASCADE)
-    district = models.ForeignKey(District, on_delete=models.CASCADE)
-    tehsil = models.ForeignKey(Tehsil, on_delete=models.CASCADE)
-    created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_division",
-                                   on_delete=models.CASCADE)
-    modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_division",
                                     null=True, on_delete=models.CASCADE)
     modified_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -150,6 +150,8 @@ class Council(models.Model):
     province = models.ForeignKey(Province, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     tehsil = models.ForeignKey(Tehsil, on_delete=models.CASCADE)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
+
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_council",
                                    on_delete=models.CASCADE)
     modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_council",
@@ -163,19 +165,34 @@ class PollingStation(models.Model):
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     tehsil = models.ForeignKey(Tehsil, on_delete=models.CASCADE)
     council = models.ForeignKey(Council, on_delete=models.CASCADE)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_pollingstation",
                                    on_delete=models.CASCADE)
     modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_pollingstation",
                                     null=True, on_delete=models.CASCADE)
     modified_datetime = models.DateTimeField(auto_now_add=True)
 
+class PollingBooth(models.Model):
+    name = models.CharField(max_length=100)
+    polling_station = models.ForeignKey(PollingStation, on_delete=models.CASCADE)
+    gender=models.CharField(max_length=60, null=True, blank=True)
+    created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_pollingbooth",
+                                   on_delete=models.CASCADE)
+    modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_pollingbooth",
+                                    null=True, on_delete=models.CASCADE)
+    modified_datetime = models.DateTimeField(auto_now_add=True)
+
+
 class Candidate(models.Model):
     name = models.CharField(max_length=100)
+    gender=models.CharField(max_length=60, null=True, blank=True)
     province = models.ForeignKey(Province, on_delete=models.CASCADE)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)
     tehsil = models.ForeignKey(Tehsil, on_delete=models.CASCADE)
     council = models.ForeignKey(Council, on_delete=models.CASCADE)
     polling_station = models.ForeignKey(PollingStation, on_delete=models.CASCADE)
+    polling_booth = models.ForeignKey(PollingBooth, on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_candidate",
                                    on_delete=models.CASCADE)
@@ -192,9 +209,11 @@ class VoterTable(models.Model):
     tehsil = models.ForeignKey(Tehsil, on_delete=models.CASCADE)
     council = models.ForeignKey(Council, on_delete=models.CASCADE)
     polling_station = models.ForeignKey(PollingStation, on_delete=models.CASCADE)
+    polling_booth = models.ForeignKey(PollingBooth, on_delete=models.CASCADE)
     uc_id = models.IntegerField(null=True, blank=True, default=0)
     address = models.CharField(max_length=250, null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
+    gender=models.CharField(max_length=60, null=True, blank=True)
     is_voted = models.BooleanField(default=False)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_fk",
                                    on_delete=models.CASCADE)
@@ -205,6 +224,7 @@ class VoterTable(models.Model):
 class Vote(models.Model):
     voter = models.ForeignKey(VoterTable, on_delete=models.CASCADE)
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    gender=models.CharField(max_length=60, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     transaction_id = models.CharField(max_length=255, null=True, blank=True)  # To store the blockchain transaction ID
 
