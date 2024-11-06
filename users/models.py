@@ -186,6 +186,7 @@ class PollingBooth(models.Model):
 class Candidate(models.Model):
     name = models.CharField(max_length=100)
     gender=models.CharField(max_length=60, null=True, blank=True)
+    type=models.CharField(max_length=60, null=True, blank=True)
     province = models.ForeignKey(Province, on_delete=models.CASCADE)
     division = models.ForeignKey(Division, on_delete=models.CASCADE)
     district = models.ForeignKey(District, on_delete=models.CASCADE)

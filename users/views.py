@@ -563,7 +563,7 @@ class ManageCandidate(APIView):
                 candidate_serializer.save()
                 message = f"{candidate_serializer.validated_data.get('name')} created successfully"
                 return created(message=message)
-            return bad_request(message="Invalid data")
+            return bad_request(message=candidate_serializer.errors)
 
         except Exception as err:
             print(traceback.format_exc())
@@ -831,18 +831,23 @@ class PollingStationCandidatesView(APIView):
             candidates = Candidate.objects.filter(polling_station=polling_station)\
                 .annotate(vote_count=Count('vote'))\
                 .order_by('-vote_count')
+            total_votes_cast = Vote.objects.filter(voter__polling_station_id=id).count()
+            total_votes_registered = VoterTable.objects.filter(polling_station_id=id).count()
 
             # Prepare response data
             candidates_data = [
                 {
                     "candidate_name": candidate.name,
+                    "type": candidate.type,
                     "vote_count": candidate.vote_count
                 } for candidate in candidates
             ]
 
             data = {
                 "polling_station": polling_station.name,
-                "candidates": candidates_data
+                "total_votes_cast":total_votes_cast,
+                "total_votes_registered":total_votes_registered,
+                "candidates": candidates_data,
             }
             return ok(data=data)
 
