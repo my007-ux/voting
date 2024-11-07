@@ -130,7 +130,46 @@ class PollingStationGetterSerializer(ModelSerializer):
         model = PollingStation
         fields = ['id', 'name']
 
+class ProvinceGetterSerializer(ModelSerializer):
+    class Meta:
+        model = Province
+        fields = ['id', 'name']
+
+class DivisionGetterSerializer(ModelSerializer):
+    class Meta:
+        model = Division
+        fields = ['id', 'name']
+
+class DistrcitGetterSerializer(ModelSerializer):
+    class Meta:
+        model = District
+        fields = ['id', 'name']
+
+class TehsilGetterSerializer(ModelSerializer):
+    class Meta:
+        model = Tehsil
+        fields = ['id', 'name']
+
+class CouncilGetterSerializer(ModelSerializer):
+    class Meta:
+        model = Council
+        fields = ['id', 'name']
+
+class PollingBoothGetterSerializer(ModelSerializer):
+    class Meta:
+        model = PollingBooth
+        fields = ['id', 'name']
+
+
 class CandidateSerializer(ModelSerializer):
+    province = ProvinceGetterSerializer()
+    division = DivisionGetterSerializer()
+    district = DistrcitGetterSerializer()
+    tehsil = TehsilGetterSerializer()
+    council = CouncilGetterSerializer()
+    polling_station = PollingStationGetterSerializer()
+    polling_booth = PollingBoothGetterSerializer()
+
     class Meta:
         model = Candidate
         fields = '__all__'
