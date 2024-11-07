@@ -158,7 +158,7 @@ class CouncilGetterSerializer(ModelSerializer):
 class PollingBoothGetterSerializer(ModelSerializer):
     class Meta:
         model = PollingBooth
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'gender']
 
 
 class CandidateSerializer(ModelSerializer):
@@ -174,13 +174,36 @@ class CandidateSerializer(ModelSerializer):
         model = Candidate
         fields = '__all__'
 
+
+class CandidateGetSerializer(ModelSerializer):
+    class Meta:
+        model = Candidate
+        fields = ['id', 'name']
+
 class VoterUserSerializer(ModelSerializer):
     polling_station = PollingStationGetterSerializer()
+    polling_booth = PollingBoothGetterSerializer()
     class Meta:
         model = VoterTable
         fields = '__all__'
 
+class VoterGetterUserSerializer(ModelSerializer):
+    class Meta:
+        model = VoterTable
+        fields = ['id', 'name', 'gender']
+
 class VoteSerializer(ModelSerializer):
+    class Meta:
+        model = Vote
+        fields = '__all__'
+
+
+class VoteGetterSerializer(ModelSerializer):
+    voter=VoterGetterUserSerializer()
+    candidate=CandidateGetSerializer()
+    council = CouncilGetterSerializer()
+    polling_station = PollingStationGetterSerializer()
+    polling_booth = PollingBoothGetterSerializer()
     class Meta:
         model = Vote
         fields = '__all__'

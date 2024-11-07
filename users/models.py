@@ -230,5 +230,14 @@ class Vote(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
     gender=models.CharField(max_length=60, null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    council = models.ForeignKey(Council, on_delete=models.CASCADE)
+    polling_station = models.ForeignKey(PollingStation, on_delete=models.CASCADE)
+    polling_booth = models.ForeignKey(PollingBooth, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ['candidate', 'voter']  # Ensure each candidate-voter combination is unique
+
+
+class CatsedVote(models.Model):
     transaction_id = models.CharField(max_length=255, null=True, blank=True)  # To store the blockchain transaction ID
 

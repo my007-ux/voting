@@ -13,8 +13,10 @@ from utils.responses import internal_server_error, bad_request, created, not_fou
 from .models import *
 from .serializer import *
 import csv
-from .blockchain import Blockchain  # Assume this is your blockchain interface
+from .blockchain import cast_vote,decrypt_vote
 from django.db.models import Count
+from collections import defaultdict
+
 
 
 User = get_user_model()
@@ -36,7 +38,6 @@ class SignUp(APIView):
 class Login(APIView):
     def post(self, request):
         try:
-            print(request.data)
             username = request.data.get('username')
             password = request.data.get('password')
             email = request.data.get('email')
@@ -65,7 +66,6 @@ class ImportCsvView(APIView):
 
     def post(self, request):
         csv_file = request.FILES['csv_file']
-        print(csv_file)
         # Read and parse the CSV file
         if csv_file:
             file_data = csv_file.read().decode('utf-8').splitlines()
@@ -732,57 +732,48 @@ class CastVote(APIView):
     authentication_classes = []
     permission_classes = []
     def post(self, request):
-        serializer = VoteSerializer(data=request.data)
-        if serializer.is_valid():
-            voter = serializer.validated_data['voter']
-            candidate = serializer.validated_data['candidate']
-            
-            # Check if the voter has already voted
-            voter_instance = VoterTable.objects.get(id=voter.id)
-            if voter_instance.is_voted:
-                return Response({"message": "You have already voted."}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Create a blockchain transaction (this is a placeholder for actual implementation)
-            blockchain = Blockchain()  # Instantiate your blockchain interface
-            transaction_id = blockchain.create_transaction(voter.id, candidate.id)  # Implement this method in your blockchain logic
-            print(transaction_id)
-            # Save the vote with transaction details
-            # vote = Vote(
-            #     voter=voter_instance,
-            #     candidate=candidate,
-            #     transaction_id=transaction_id
-            # )
-            # vote.save()
-            
-            # # Set is_vote to True in the VoterTable
-            # voter_instance.is_voted = True
-            # voter_instance.save()
-
-            return created(message= "Vote cast successfully", data={"transaction_id": transaction_id})
-        return bad_request(data=serializer.errors)
-
+        try:
+            voter_id = request.data.get('voter')
+            candidate_id = request.data.get('candidate')
+            council_id =  request.data.get('council')
+            polling_station_id =  request.data.get('polling_station')
+            polling_booth_id =  request.data.get('polling_booth')
+            gender =  request.data.get('gender')
+            voter = VoterTable.objects.get(id=voter_id)
+            candidate = Candidate.objects.get(id=candidate_id)
+            council = Council.objects.get(id=council_id)
+            polling_station = PollingStation.objects.get(id=polling_station_id)
+            polling_booth = PollingBooth.objects.get(id=polling_booth_id)
+            txn_id = cast_vote(voter, candidate,council,polling_station,polling_booth,gender)
+            return created(message= "Vote cast successfully", data={"transaction_id": txn_id})
+        except ValidationError as err:
+            error_message = err.get_full_details()
+            print(traceback.format_exc())
+            return internal_server_error(message=error_message)
     def get(self, request, id=None):
         try:
             # Retrieve votes for the specific candidate
-            votes = Vote.objects.filter(candidate__id=id)
+            # Get all CatsedVotes
+            catsed_votes = CatsedVote.objects.all()
+            
+            # Group votes by candidate
+            vote_data = []
 
-            # Count the number of votes for this candidate
-            vote_count = votes.count()
-
-            # Retrieve transaction details
-            transaction_details = [
-                {
-                    "voter_id": vote.voter.id,
-                    "transaction_id": vote.transaction_id,
-                    "candidate": vote.candidate.name,
-                }
-                for vote in votes
-            ]
-
+            # Decrypt the transaction_id from CatsedVote and fetch related votes
+            for catsed_vote in catsed_votes:
+                # Decrypt the transaction ID to get the vote ID
+                decrypted_vote_id = decrypt_vote(catsed_vote.transaction_id)
+                # Retrieve the Vote object using the decrypted vote ID
+                try:
+                    vote = Vote.objects.get(id=decrypted_vote_id)            
+                    # Prepare vote data (you can expand this as needed)
+                    serilizeData = VoteGetterSerializer(vote, partial=True)
+                    vote_data.append(serilizeData.data)
+                except Vote.DoesNotExist:
+                    continue  # If the vote doesn't exist for this ID, skip it
             return ok(data={
-                "candidate_id": candidate_id,
-                "vote_count": vote_count,
-                "transactions": transaction_details
+                "votes": vote_data,
+                "vote_count": len(vote_data),
             })
 
         except Candidate.DoesNotExist:
