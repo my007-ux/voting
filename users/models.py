@@ -241,3 +241,11 @@ class Vote(models.Model):
 class CatsedVote(models.Model):
     transaction_id = models.CharField(max_length=255, null=True, blank=True)  # To store the blockchain transaction ID
 
+class TransactionPart1(models.Model):
+    part = models.CharField(max_length=255)
+
+class TransactionPart2(models.Model):
+    part = models.CharField(max_length=255)
+
+class TransactionPart3(models.Model):
+    part = models.CharField(max_length=255)
