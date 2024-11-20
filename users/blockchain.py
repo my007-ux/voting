@@ -11,7 +11,6 @@ import base64
 # Setup web3 connection and contract instance
 infura_project_id = secrets.INFURA_API_KEY  # replace with your actual project ID
 infura_url = f'https://sepolia.infura.io/v3/{infura_project_id}'
-web3 = Web3(Web3.HTTPProvider(infura_url))
 contract_address = secrets.ETHEREUM_WALLET_ADDRESS
 contract_abi = [
   {
