@@ -744,8 +744,11 @@ class CastVote(APIView):
             council = Council.objects.get(id=council_id)
             polling_station = PollingStation.objects.get(id=polling_station_id)
             polling_booth = PollingBooth.objects.get(id=polling_booth_id)
-            txn_id = cast_vote(voter, candidate,council,polling_station,polling_booth,gender)
-            return created(message= "Vote cast successfully", data={"transaction_id": txn_id})
+            if Vote.objects.filter(voter=voter, candidate=candidate).exists():
+                  return bad_request(message="Vote already casted")
+            else:
+                txn_id = cast_vote(voter, candidate,council,polling_station,polling_booth,gender)
+                return created(message= "Vote cast successfully", data={"transaction_id": txn_id})
         except ValidationError as err:
             error_message = err.get_full_details()
             print(traceback.format_exc())
