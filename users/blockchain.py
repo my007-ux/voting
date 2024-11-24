@@ -1,4 +1,3 @@
-from web3 import Web3
 from django.conf import settings
 from .models import Vote, CatsedVote
 import hashlib
@@ -9,10 +8,7 @@ import os
 import base64
 
 
-# Setup web3 connection and contract instance
-infura_project_id = secrets.INFURA_API_KEY  # replace with your actual project ID
-infura_url = f'https://sepolia.infura.io/v3/{infura_project_id}'
-web3 = Web3(Web3.HTTPProvider(infura_url))
+
 contract_address = secrets.ETHEREUM_WALLET_ADDRESS
 contract_abi = [
   {
@@ -70,7 +66,6 @@ def decrypt_vote(encrypted_transaction_id: str) -> int:
     # Return the decrypted vote ID (convert from bytes to int)
     return int(decrypted_data.strip())
 
-contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
 # Cast vote and save transaction ID
 def cast_vote(voter, candidate, council, polling_station, polling_booth, gender):
@@ -85,7 +80,6 @@ def cast_vote(voter, candidate, council, polling_station, polling_booth, gender)
     )
     
     # Fetch the current nonce for the Ethereum wallet
-    nonce = web3.eth.get_transaction_count(secrets.ETHEREUM_WALLET_ADDRESS)
 
     # Build the transaction for the recordVote function on the contract
     txn_id = encrypt_vote(vote_id=vote.id, secret_key=secrets.SECRET_KEY)
