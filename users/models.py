@@ -219,6 +219,7 @@ class VoterTable(models.Model):
     date_joined = models.DateTimeField(auto_now_add=True)
     gender=models.CharField(max_length=60, null=True, blank=True)
     is_voted = models.BooleanField(default=False)
+    fingerprint = models.CharField(max_length=200)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_fk",
                                    on_delete=models.CASCADE)
     modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_fk",

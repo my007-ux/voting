@@ -33,6 +33,7 @@ urlpatterns = [
     path('female_booth/votes/statics/<int:pk>/', views.VoterViewSet.as_view({'get': 'get_female_votes_in_booths'}), name='get_female_votes_in_booths'),
     path('candidates/List/<int:id>/', views.PollingStationCandidatesView.as_view(), name='manage_candidate_list'),
     path('cast_vote/', views.CastVote.as_view(), name='cast_vote'),
+    path('register_fingerprint/', views.RegisterFingerprint.as_view(), name='register_fingerprint'),
 
     # path('refreshToken/', views.RefreshTokenView.as_view()),
 ]

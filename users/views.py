@@ -16,6 +16,8 @@ import csv
 from .blockchain import cast_vote,decrypt_vote
 from django.db.models import Count
 from collections import defaultdict
+from django.shortcuts import get_object_or_404
+
 
 
 
@@ -847,3 +849,27 @@ class PollingStationCandidatesView(APIView):
 
         except PollingStation.DoesNotExist:
             return internal_server_error(message= "Polling station not found")
+
+
+class RegisterFingerprint(APIView):
+    authentication_classes = []
+    permission_classes = []
+    def post(self, request):
+        try:
+            cnic = request.data.get('cnic')
+            fingerprint = request.data.get('fingerprint')
+            if not cnic or not fingerprint:
+                return bad_request(message= "Both cnic and fingerprint are required." )
+
+            # Fetch voter from the database
+            voter = get_object_or_404(VoterTable, cnic=cnic)
+
+            # Update the fingerprint
+            voter.fingerprint = fingerprint
+            voter.save()
+            return ok(message="Fingerprint Register successfully")
+           
+        except ValidationError as err:
+            error_message = err.get_full_details()
+            print(traceback.format_exc())
+            return internal_server_error(message=error_message)
