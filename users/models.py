@@ -219,6 +219,7 @@ class VoterTable(models.Model):
     date_joined = models.DateTimeField(auto_now_add=True)
     gender=models.CharField(max_length=60, null=True, blank=True)
     is_voted = models.BooleanField(default=False)
+    fingerprint = models.CharField(max_length=200)
     created_by = models.ForeignKey('User', null=True, blank=True, related_name="user_voter_created_by_fk",
                                    on_delete=models.CASCADE)
     modified_by = models.ForeignKey('User', blank=True, related_name="user_voter_modified_by_fk",
@@ -241,3 +242,11 @@ class Vote(models.Model):
 class CatsedVote(models.Model):
     transaction_id = models.CharField(max_length=255, null=True, blank=True)  # To store the blockchain transaction ID
 
+class TransactionPart1(models.Model):
+    part = models.CharField(max_length=255)
+
+class TransactionPart2(models.Model):
+    part = models.CharField(max_length=255)
+
+class TransactionPart3(models.Model):
+    part = models.CharField(max_length=255)

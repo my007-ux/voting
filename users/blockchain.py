@@ -1,5 +1,5 @@
 from django.conf import settings
-from .models import Vote, CatsedVote
+from .models import Vote, CatsedVote, TransactionPart1, TransactionPart2, TransactionPart3
 import hashlib
 from core import secrets
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -8,7 +8,9 @@ import os
 import base64
 
 
-
+# Setup web3 connection and contract instance
+infura_project_id = secrets.INFURA_API_KEY  # replace with your actual project ID
+infura_url = f'https://sepolia.infura.io/v3/{infura_project_id}'
 contract_address = secrets.ETHEREUM_WALLET_ADDRESS
 contract_abi = [
   {
@@ -83,7 +85,14 @@ def cast_vote(voter, candidate, council, polling_station, polling_booth, gender)
 
     # Build the transaction for the recordVote function on the contract
     txn_id = encrypt_vote(vote_id=vote.id, secret_key=secrets.SECRET_KEY)
-    
+    # Divide the transaction ID into three parts
+    part1, part2, part3 = txn_id[:len(txn_id)//3], txn_id[len(txn_id)//3:2*len(txn_id)//3], txn_id[2*len(txn_id)//3:]
+
+    # Save each part into its respective table
+    TransactionPart1.objects.create(part=part1)
+    TransactionPart2.objects.create(part=part2)
+    TransactionPart3.objects.create(part=part3)
+
     # Create a CatsedVote instance to store the transaction ID
     CatsedVote.objects.create(transaction_id=txn_id)
 

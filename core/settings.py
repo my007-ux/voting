@@ -106,7 +106,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '10/min',
+        'anon': '1000/min',
     }
 }
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
