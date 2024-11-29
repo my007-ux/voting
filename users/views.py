@@ -655,6 +655,27 @@ class VoterViewSet(viewsets.ViewSet):
             'percentage': percentage,
         }
         return ok(data=data)
+    def dashboard_details(self, request, pk=None):
+        # Get candidate profile detail and votes
+        try:
+            # Get all polling stations under the given council
+            polling_stations_count = PollingStation.objects.filter(council_id=pk).count()
+            candidates_count = Candidate.objects.filter(council_id=pk).count()
+            total_votes_count = VoterTable.objects.filter(council_id=pk).count()
+            casted_votes_count = Vote.objects.filter(council_id=pk).count()
+            remaining_votes_count = total_votes_count - casted_votes_count
+
+            # Prepare the response
+            data = {
+                "polling_stations_count": polling_stations_count,
+                "candidates_count": candidates_count,
+                "total_votes_count": total_votes_count,
+                "casted_votes_count": casted_votes_count,
+                "remaining_votes_count": remaining_votes_count
+            }
+            return ok(data=data)
+        except Council.DoesNotExist:
+            return internal_server_error(message= "Council not found")
     def get_polling_station_vote_stats(self, request, pk=None):
         # Get total votes registered in the polling station
         total_votes_registered = VoterTable.objects.filter(polling_station_id=pk).count()

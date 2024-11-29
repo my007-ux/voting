@@ -28,6 +28,7 @@ urlpatterns = [
     path('voters/candidates/', views.VoterViewSet.as_view({'get': 'get_candidate_list'}), name='get_candidate_list'),
     path('voters/statistics/', views.VoterViewSet.as_view({'get': 'voter_statistics'}), name='voter_statistics'),
     path('candidates/<int:pk>/', views.VoterViewSet.as_view({'get': 'candidate_details'}), name='candidate_details'),
+    path('dashboardstats/<int:pk>/', views.VoterViewSet.as_view({'get': 'dashboard_details'}), name='dashboard_details'),
     path('pollingStation/votes/statics/<int:pk>/', views.VoterViewSet.as_view({'get': 'get_polling_station_vote_stats'}), name='get_polling_station_vote_stats'),
     path('male_booth/votes/statics/<int:pk>/', views.VoterViewSet.as_view({'get': 'get_male_votes_in_booths'}), name='get_male_votes_in_booths'),
     path('female_booth/votes/statics/<int:pk>/', views.VoterViewSet.as_view({'get': 'get_female_votes_in_booths'}), name='get_female_votes_in_booths'),
