@@ -35,6 +35,7 @@ urlpatterns = [
     path('candidates/List/<int:id>/', views.PollingStationCandidatesView.as_view(), name='manage_candidate_list'),
     path('cast_vote/', views.CastVote.as_view(), name='cast_vote'),
     path('register_fingerprint/', views.RegisterFingerprint.as_view(), name='register_fingerprint'),
+    path('cast_vote_fingerprint/', views.CastVoteView.as_view(), name='cast-vote-fingerprint'),
 
     # path('refreshToken/', views.RefreshTokenView.as_view()),
 ]

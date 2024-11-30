@@ -894,3 +894,39 @@ class RegisterFingerprint(APIView):
             error_message = err.get_full_details()
             print(traceback.format_exc())
             return internal_server_error(message=error_message)
+
+
+class CastVoteView(APIView):
+    authentication_classes = []
+    permission_classes = []
+    def post(self, request):
+        try:
+            voter_id = request.data.get('voter')
+            fingerprint = request.data.get('fingerprint')
+            candidate_id = request.data.get('candidate')
+            council_id =  request.data.get('council')
+            polling_station_id =  request.data.get('polling_station')
+            polling_booth_id =  request.data.get('polling_booth')
+            gender =  request.data.get('gender')
+            if not fingerprint:
+                return bad_request(message="Fingerprint is required")
+
+            # Fetch voter by fingerprint
+            try:
+                voter = VoterTable.objects.get(fingerprint=fingerprint)
+            except VoterTable.DoesNotExist:
+                return bad_request(message="Voter with the provided fingerprint does not exist")
+            voter = VoterTable.objects.get(id=voter_id)
+            candidate = Candidate.objects.get(id=candidate_id)
+            council = Council.objects.get(id=council_id)
+            polling_station = PollingStation.objects.get(id=polling_station_id)
+            polling_booth = PollingBooth.objects.get(id=polling_booth_id)
+            if Vote.objects.filter(voter=voter, candidate=candidate).exists():
+                  return bad_request(message="Vote already casted")
+            else:
+                txn_id = cast_vote(voter, candidate,council,polling_station,polling_booth,gender)
+                return created(message= "Vote cast successfully", data={"transaction_id": txn_id})
+        except ValidationError as err:
+            error_message = err.get_full_details()
+            print(traceback.format_exc())
+            return internal_server_error(message=error_message)
